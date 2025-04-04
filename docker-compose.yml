@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: intershop_postgres
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  app:
+    image: intershop:2.0
+    container_name: intershop_app_2.0
+    depends_on:
+      - postgres
+    environment:
+      SPRING_DATASOURCE_URL: r2dbc:postgresql://postgres:5432/postgres
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_LIQUIBASE_URL: jdbc:postgresql://postgres:5432/postgres
+      INTERSHOP_ITEM_IMG_DIR: /app/images
+    ports:
+      - "8080:8080"
+    volumes:
+      - images_data:/app/images
+
+volumes:
+  pgdata:
+  images_data:
