@@ -1,0 +1,103 @@
+openapi: 3.0.1
+info:
+  title: Платёжный сервис
+  version: 1.0.0
+  description: |
+    REST‑приложение для работы с платежами
+servers:
+  - url: /payments
+
+tags:
+  - name: Payments
+    description: Сервис платежей
+
+
+paths:
+  /balance:
+    get:
+      tags:
+        - Payments
+      summary: Получение баланса на счёте
+      operationId: getBalance
+      responses:
+        '200':
+          description: Текущий баланс счёта
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceResponse'
+
+  /payment:
+    post:
+      tags:
+        - Payments
+      summary: Осуществление платежа
+      operationId: makePayment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+      responses:
+        '200':
+          description: Платёж проведён успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+        '400':
+          description: Ошибка — недостаточно средств
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    BalanceResponse:
+      type: object
+      properties:
+        balance:
+          type: number
+          format: double
+          example: 123.45
+      required:
+        - balance
+
+    PaymentRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+          format: double
+          example: 50.00
+      required:
+        - amount
+
+    PaymentResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        remainingBalance:
+          type: number
+          format: double
+          example: 73.45
+      required:
+        - success
+        - remainingBalance
+
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          example: INSUFFICIENT_FUNDS
+        message:
+          type: string
+          example: "На счёте недостаточно средств"
+      required:
+        - code
+        - message
