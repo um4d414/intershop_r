@@ -11,12 +11,17 @@ plugins {
     id 'java'
     id 'org.springframework.boot'
     id 'io.spring.dependency-management'
+    id 'org.openapi.generator' version '7.12.0'
 }
 
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
+}
+
+compileJava {
+    dependsOn 'openApiGenerate'
 }
 
 repositories {
@@ -42,6 +47,12 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
+    // OPENAPI
+    implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
+    implementation 'jakarta.annotation:jakarta.annotation-api:2.1.1'
+    implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
+
+
     // TEST
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.projectreactor:reactor-test'
@@ -64,3 +75,38 @@ test {
 bootJar {
     launchScript()
 }
+
+openApiGenerate {
+    generatorName.set("java")
+    inputSpec.set("${rootProject.projectDir}/payments/src/main/resources/openapi/payments.yml")
+
+    def genDir = layout.buildDirectory.dir("generated")
+    outputDir.set(genDir.map { it.asFile.absolutePath })
+
+    modelPackage.set("ru.umd.intershop.client.model")
+    apiPackage.set("ru.umd.intershop.client.api")
+
+    configOptions.set([
+            sourceFolder        : "src/main/java",
+            library             : "webclient",
+            dateLibrary         : "java8",
+            useRuntimeException : "true",
+            reactive            : "true",
+            interfaceOnly       : "false",
+            apiPackage          : "ru.umd.intershop.client.api",
+            modelPackage        : "ru.umd.intershop.client.model",
+            skipDefaultInterface: "true",
+            typeMappings        : "double=java.math.BigDecimal",
+            useJakartaEe        : "true"
+    ])
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir layout.buildDirectory.dir("generated/src/main/java")
+        }
+    }
+}
+
+
