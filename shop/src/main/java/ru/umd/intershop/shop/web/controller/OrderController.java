@@ -3,8 +3,11 @@ package ru.umd.intershop.shop.web.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.reactive.result.view.Rendering;
 import reactor.core.publisher.Mono;
+import ru.umd.intershop.client.api.PaymentsApi;
+import ru.umd.intershop.client.model.PaymentRequest;
 import ru.umd.intershop.shop.service.order.OrderService;
 import ru.umd.intershop.shop.web.model.ItemModel;
 import ru.umd.intershop.shop.web.model.OrderModel;
@@ -16,6 +19,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderController {
     private final OrderService orderService;
+
+    private final PaymentsApi paymentsApi;
 
     @GetMapping("/orders")
     public Mono<Rendering> orders() {
@@ -75,7 +80,7 @@ public class OrderController {
     @GetMapping("/cart/items")
     public Mono<Rendering> cart() {
         return orderService.getCart()
-            .map(cart -> {
+            .flatMap(cart -> {
                 List<ItemModel> items = cart.getItems().stream()
                     .map(orderItemDto -> ItemModel.builder()
                         .id(orderItemDto.getItem().getId())
@@ -90,17 +95,64 @@ public class OrderController {
                     .map(orderItem -> orderItem.getItem().getPrice()
                         .multiply(BigDecimal.valueOf(orderItem.getCount())))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
-                return Rendering.view("cart")
-                    .modelAttribute("items", items)
-                    .modelAttribute("empty", items.isEmpty())
-                    .modelAttribute("total", total)
-                    .build();
+
+                return paymentsApi.getBalance()
+                    .map(balanceResponse -> {
+                        BigDecimal balance = BigDecimal.valueOf(balanceResponse.getBalance());
+                        boolean insufficientFunds = balance.compareTo(total) < 0;
+
+                        return Rendering.view("cart")
+                            .modelAttribute("items", items)
+                            .modelAttribute("empty", items.isEmpty())
+                            .modelAttribute("total", total)
+                            .modelAttribute("insufficientFunds", insufficientFunds)
+                            .modelAttribute("serviceAvailable", true)
+                            .modelAttribute("balance", balance)
+                            .build();
+                    })
+                    .onErrorResume(
+                        ex -> Mono.just(Rendering.view("cart")
+                                            .modelAttribute("items", items)
+                                            .modelAttribute("empty", items.isEmpty())
+                                            .modelAttribute("total", total)
+                                            .modelAttribute("serviceAvailable", false)
+                                            .build())
+                    );
             });
     }
 
     @PostMapping("/buy")
     public Mono<Rendering> processOrder() {
-        return orderService.processCart()
-            .map(orderId -> Rendering.redirectTo("/orders/" + orderId + "?isNew=true").build());
+        return orderService.getCart()
+            .flatMap(cart -> {
+                // Вычисляем общую сумму точно так же, как в методе cart()
+                BigDecimal totalAmount = cart.getItems().stream()
+                    .map(orderItem -> orderItem.getItem().getPrice()
+                        .multiply(BigDecimal.valueOf(orderItem.getCount())))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                var paymentRequest = new PaymentRequest();
+                paymentRequest.setAmount(totalAmount.doubleValue());
+
+                return paymentsApi.makePayment(paymentRequest)
+                    .flatMap(response -> {
+                        if (response.getSuccess()) {
+                            return orderService.processCart()
+                                .map(orderId -> Rendering.redirectTo("/orders/" + orderId + "?isNew=true").build());
+                        } else {
+                            return Mono.just(Rendering.redirectTo("/cart/items?paymentError=true").build());
+                        }
+                    })
+                    .onErrorResume(ex -> {
+                        if (ex instanceof WebClientResponseException.BadRequest) {
+                            // Недостаточно средств на счете
+                            return Mono.just(Rendering.redirectTo("/cart/items?paymentError=true").build());
+                        } else {
+                            // Сервис недоступен или другая ошибка
+                            return Mono.just(Rendering.redirectTo("/cart/items?serviceError=true").build());
+                        }
+                    });
+            });
     }
+
 }

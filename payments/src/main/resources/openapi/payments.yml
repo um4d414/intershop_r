@@ -47,7 +47,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaymentResponse'
         '400':
-          description: Ошибка — недостаточно средств
+          description: Ошибка — недостаточно средств или некорректная сумма
           content:
             application/json:
               schema:
@@ -71,6 +71,8 @@ components:
         amount:
           type: number
           format: double
+          minimum: 0.0
+          description: Сумма платежа (должна быть положительным числом)
           example: 50.00
       required:
         - amount
@@ -94,6 +96,9 @@ components:
       properties:
         code:
           type: string
+          enum:
+            - INSUFFICIENT_FUNDS
+            - INVALID_AMOUNT
           example: INSUFFICIENT_FUNDS
         message:
           type: string

@@ -96,7 +96,6 @@ openApiGenerate {
             apiPackage          : "ru.umd.intershop.client.api",
             modelPackage        : "ru.umd.intershop.client.model",
             skipDefaultInterface: "true",
-            typeMappings        : "double=java.math.BigDecimal",
             useJakartaEe        : "true"
     ])
 }

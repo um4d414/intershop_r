@@ -13,6 +13,15 @@
 <a href="/main/items" style="float:right;">
     <b>ГЛАВНАЯ &cudarrr;</b>
 </a>
+
+<!-- Сообщения об ошибках -->
+<div th:if="${param.paymentError}" style="color: red; text-align: center;">
+    <h3>Ошибка! Недостаточно средств для оплаты заказа.</h3>
+</div>
+<div th:if="${param.serviceError}" style="color: red; text-align: center;">
+    <h3>Ошибка! Сервис платежей недоступен.</h3>
+</div>
+
 <table style="width:70%;margin-left:auto;margin-right:auto;">
     <tr th:each="item : ${items}">
         <td>
@@ -49,11 +58,30 @@
             <b th:text="'Итого: '+${total}+' руб.'"></b>
         </td>
     </tr>
+
+    <!-- Информация о балансе -->
+    <tr th:if="${serviceAvailable}">
+        <td style="text-align:right">
+            <p th:text="'Ваш баланс: '+${balance}+' руб.'"></p>
+        </td>
+    </tr>
+
     <tr>
         <td style="text-align:right">
-            <form action="/buy" method="post" th:if="${!empty}">
+            <!-- Кнопка покупки, если корзина не пуста и достаточно средств -->
+            <form action="/buy" method="post" th:if="${!empty && serviceAvailable && !insufficientFunds}">
                 <button>Купить</button>
             </form>
+
+            <!-- Сообщение о недостаточности средств -->
+            <p th:if="${!empty && serviceAvailable && insufficientFunds}" style="color: red;">
+                Недостаточно средств на счету для оформления заказа!
+            </p>
+
+            <!-- Сообщение о недоступности сервиса платежей -->
+            <p th:if="${!empty && !serviceAvailable}" style="color: red;">
+                Сервис платежей недоступен. Попробуйте позже.
+            </p>
         </td>
     </tr>
 </table>
