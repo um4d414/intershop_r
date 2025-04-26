@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
-import ru.umd.intershop.payments.web.exception.GlobalExceptionHandler;
+import ru.umd.intershop.payments.web.controller.exception.GlobalExceptionHandler;
 import ru.umd.intershop.payments.web.model.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

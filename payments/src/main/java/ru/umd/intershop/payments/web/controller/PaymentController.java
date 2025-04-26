@@ -1,7 +1,6 @@
 package ru.umd.intershop.payments.web.controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -9,7 +8,6 @@ import ru.umd.intershop.payments.web.controller.exception.PaymentException;
 import ru.umd.intershop.payments.web.model.*;
 
 @RestController
-@RequestMapping("/payments")
 public class PaymentController implements PaymentsApi {
     private final double balance = 1000.0;
 

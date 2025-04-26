@@ -1,10 +1,9 @@
-package ru.umd.intershop.payments.web.exception;
+package ru.umd.intershop.payments.web.controller.exception;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import reactor.core.publisher.Mono;
-import ru.umd.intershop.payments.web.controller.exception.PaymentException;
 import ru.umd.intershop.payments.web.model.ErrorResponse;
 
 @RestControllerAdvice

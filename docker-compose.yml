@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:14
@@ -14,20 +12,36 @@ services:
       - pgdata:/var/lib/postgresql/data
 
   app:
-    image: intershop:2.0
-    container_name: intershop_app_2.0
+    build:
+      context: .
+      target: shop
+    image: intershop:3.0
+    container_name: intershop_app_3.0
     depends_on:
       - postgres
+      - payments
     environment:
       SPRING_DATASOURCE_URL: r2dbc:postgresql://postgres:5432/postgres
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_LIQUIBASE_URL: jdbc:postgresql://postgres:5432/postgres
       INTERSHOP_ITEM_IMG_DIR: /app/images
+      APP_PAYMENTS_SERVICE_URL: http://payments:8081
     ports:
       - "8080:8080"
     volumes:
       - images_data:/app/images
+
+  payments:
+    build:
+      context: .
+      target: payments
+    image: payments:1.0
+    container_name: intershop_payments_1.0
+    environment:
+      SERVER_PORT: 8081
+    ports:
+      - "8081:8081"
 
 volumes:
   pgdata:

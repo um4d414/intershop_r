@@ -1,12 +1,16 @@
-FROM openjdk:21-jdk-slim AS builder
+FROM gradle:8.6-jdk21 AS builder
 WORKDIR /app
 COPY . .
-RUN chmod +x gradlew
-RUN ./gradlew clean bootJar
+RUN gradle clean bootJar --no-daemon
 
-FROM openjdk:21-jdk-slim
+FROM eclipse-temurin:21-jre AS shop
 WORKDIR /app
-COPY --from=builder /app/build/libs/intershop-2.0.jar app.jar
+COPY --from=builder /app/shop/build/libs/shop.jar app.jar
 EXPOSE 8080
-RUN chmod +x app.jar
-ENTRYPOINT ["./app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
+
+FROM eclipse-temurin:21-jre AS payments
+WORKDIR /app
+COPY --from=builder /app/payments/build/libs/payments.jar app.jar
+EXPOSE 8081
+ENTRYPOINT ["java", "-jar", "app.jar"]

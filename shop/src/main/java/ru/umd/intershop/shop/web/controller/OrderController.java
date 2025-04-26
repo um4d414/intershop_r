@@ -1,6 +1,7 @@
 package ru.umd.intershop.shop.web.controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -17,6 +18,7 @@ import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
+@Slf4j
 public class OrderController {
     private final OrderService orderService;
 
@@ -96,28 +98,41 @@ public class OrderController {
                         .multiply(BigDecimal.valueOf(orderItem.getCount())))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+                // Если корзина пуста, просто отображаем пустую корзину
+                if (items.isEmpty()) {
+                    return Mono.just(Rendering.view("cart")
+                                         .modelAttribute("items", items)
+                                         .modelAttribute("empty", true)
+                                         .modelAttribute("total", total)
+                                         .modelAttribute("serviceAvailable", true)
+                                         .build());
+                }
+
+                // Пытаемся получить баланс
                 return paymentsApi.getBalance()
                     .map(balanceResponse -> {
+                        log.atInfo().log("баланс: " + balanceResponse.getBalance());
                         BigDecimal balance = BigDecimal.valueOf(balanceResponse.getBalance());
                         boolean insufficientFunds = balance.compareTo(total) < 0;
 
                         return Rendering.view("cart")
                             .modelAttribute("items", items)
-                            .modelAttribute("empty", items.isEmpty())
+                            .modelAttribute("empty", false)
                             .modelAttribute("total", total)
                             .modelAttribute("insufficientFunds", insufficientFunds)
-                            .modelAttribute("serviceAvailable", true)
+                            .modelAttribute("serviceAvailable", true) // Сервис доступен
                             .modelAttribute("balance", balance)
                             .build();
                     })
-                    .onErrorResume(
-                        ex -> Mono.just(Rendering.view("cart")
-                                            .modelAttribute("items", items)
-                                            .modelAttribute("empty", items.isEmpty())
-                                            .modelAttribute("total", total)
-                                            .modelAttribute("serviceAvailable", false)
-                                            .build())
-                    );
+                    .onErrorResume(ex -> {
+                        // Случилась ошибка при получении баланса
+                        return Mono.just(Rendering.view("cart")
+                                             .modelAttribute("items", items)
+                                             .modelAttribute("empty", items.isEmpty())
+                                             .modelAttribute("total", total)
+                                             .modelAttribute("serviceAvailable", false) // Сервис недоступен
+                                             .build());
+                    });
             });
     }
 
