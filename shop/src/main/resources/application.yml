@@ -3,9 +3,9 @@ spring:
     name: intershop
 
   r2dbc:
-    url: ${SPRING_DATASOURCE_URL}
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
+    url: ${SPRING_DATASOURCE_URL:r2dbc:postgresql://postgres:5432/postgres}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
 
   data:
     redis:
@@ -13,9 +13,9 @@ spring:
       port: ${REDIS_PORT:6379}
 
   liquibase:
-    url: ${SPRING_LIQUIBASE_URL}
-    user: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
+    url: ${SPRING_LIQUIBASE_URL:jdbc:postgresql://postgres:5432/postgres}
+    user: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
     enabled: true
     change-log: classpath:db/changelog/changelog-master.xml
 

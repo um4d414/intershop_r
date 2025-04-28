@@ -13,19 +13,6 @@ import ru.umd.intershop.shop.data.cache.model.ItemPageCacheModel;
 @Configuration
 @EnableConfigurationProperties(CacheProperties.class)
 public class RedisConfig {
-//    @Value("${spring.redis.host:localhost}")
-//    private String redisHost;
-//
-//    @Value("${spring.redis.port:6379}")
-//    private int redisPort;
-//
-//    @Bean
-//    LettuceConnectionFactory redisConnectionFactory() {
-//        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
-//
-//        return new LettuceConnectionFactory(config);
-//    }
-
     @Bean
     ReactiveRedisOperations<String, ItemCacheModel> itemRedisOperations(ReactiveRedisConnectionFactory factory) {
         Jackson2JsonRedisSerializer<ItemCacheModel> serializer = new Jackson2JsonRedisSerializer<>(ItemCacheModel.class);
