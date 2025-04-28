@@ -18,9 +18,13 @@ public class TestcontainersConfiguration {
             .withPassword("postgres")
             .withExposedPorts(5432);
     }
+
     @Bean
     @ServiceConnection
     RedisContainer redisContainer() {
-        return new RedisContainer(DockerImageName.parse("redis:6.2.1"));
+        RedisContainer container = new RedisContainer(DockerImageName.parse("redis:latest"));
+        container.start();
+        return container;
     }
+
 }

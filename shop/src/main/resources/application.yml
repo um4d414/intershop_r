@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: intershop
+
+  r2dbc:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  liquibase:
+    url: ${SPRING_LIQUIBASE_URL}
+    user: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    enabled: true
+    change-log: classpath:db/changelog/changelog-master.xml
+
+app:
+  image-file-base-path: ${INTERSHOP_ITEM_IMG_DIR}
+  payments:
+    service:
+      url: ${APP_PAYMENTS_SERVICE_URL:http://localhost:8081}
+
+cache:
+  ttl:
+    item: 60
+    items-page: 30
+
+
+#
+#
+#logging:
+#  level:
+#    root: DEBUG
+#    web: DEBUG
+#    sql: DEBUG

@@ -24,7 +24,7 @@ public class PaymentControllerTest {
     void testGetBalance() {
         // Проверяем получение баланса
         webTestClient.get()
-            .uri("/payments/balance")
+            .uri("/balance")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
             .expectStatus().isOk()
@@ -43,7 +43,7 @@ public class PaymentControllerTest {
 
         // Проверяем успешную оплату
         webTestClient.post()
-            .uri("/payments/payment")
+            .uri("/payment")
             .contentType(MediaType.APPLICATION_JSON)
             .body(Mono.just(request), PaymentRequest.class)
             .accept(MediaType.APPLICATION_JSON)
@@ -66,7 +66,7 @@ public class PaymentControllerTest {
 
         // Проверяем оплату с максимальной суммой
         webTestClient.post()
-            .uri("/payments/payment")
+            .uri("/payment")
             .contentType(MediaType.APPLICATION_JSON)
             .body(Mono.just(request), PaymentRequest.class)
             .accept(MediaType.APPLICATION_JSON)
@@ -89,7 +89,7 @@ public class PaymentControllerTest {
 
         // Проверяем отклонение платежа из-за недостатка средств
         webTestClient.post()
-            .uri("/payments/payment")
+            .uri("/payment")
             .contentType(MediaType.APPLICATION_JSON)
             .body(Mono.just(request), PaymentRequest.class)
             .accept(MediaType.APPLICATION_JSON)
@@ -112,7 +112,7 @@ public class PaymentControllerTest {
 
         // Проверяем платеж с нулевой суммой
         webTestClient.post()
-            .uri("/payments/payment")
+            .uri("/payment")
             .contentType(MediaType.APPLICATION_JSON)
             .body(Mono.just(request), PaymentRequest.class)
             .accept(MediaType.APPLICATION_JSON)
@@ -135,7 +135,7 @@ public class PaymentControllerTest {
 
         // Проверяем отклонение платежа из-за отрицательной суммы
         webTestClient.post()
-            .uri("/payments/payment")
+            .uri("/payment")
             .contentType(MediaType.APPLICATION_JSON)
             .body(Mono.just(request), PaymentRequest.class)
             .accept(MediaType.APPLICATION_JSON)
@@ -156,7 +156,7 @@ public class PaymentControllerTest {
         String malformedJson = "{}";
 
         webTestClient.post()
-            .uri("/payments/payment")
+            .uri("/payment")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(malformedJson)
             .accept(MediaType.APPLICATION_JSON)
